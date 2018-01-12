@@ -46,3 +46,10 @@ deploy-key :
 	ssh-keygen  -t rsa -b 4096 -P "" -C "$$me deploy key" -f .deploy/$${me}_deploy ;\
 	}
 
+push-deploy-key-to-remote :
+	{ \
+	export me=$$(basename $$(pwd)) ;\
+	export keyfile=$(REMOTEDIR)/.deploykey ;\
+	cat .deploy/$${me}_deploy | $(SSH) $(PARAM) " cat - >$$keyfile; chmod og-rw $$keyfile "  ;\
+	}
+
