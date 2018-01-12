@@ -3,9 +3,11 @@ SHELL := /bin/bash
 
 
 PROJECT := mynotebook
-LOGIN   := ec2-user@ec2-35-157-157-97.eu-central-1.compute.amazonaws.com
+LOGIN   := ubuntu@18.194.22.206
+# ubuntu@18.196.84.52 
+# ec2-user@ec2-35-157-157-97.eu-central-1.compute.amazonaws.com
 SSH     := ssh -A -i ~/.ssh/id_martinvirtel_server_2016.pub $(LOGIN)
-REMOTEDIR := /home/ec2-user/projekte/$(PROJECT)
+REMOTEDIR := /home/ubuntu/projekte/$(PROJECT)
 
 build:
 	docker build . -t $(PROJECT)
@@ -60,4 +62,18 @@ push-deploy-key-to-remote :
 	echo Then clone with: ;\
 	printf "git clone $(shell git remote -v | awk -n '/fetch/ { print gensub(/^[^:]+/,"git@$(PROJECT)-github",$$2); }')\n" ;\
 	}
+
+
+
+INSTANCE := i-045fdc3f16c85b557
+
+start-instance:
+	aws ec2 start-instances --instance-ids=$(INSTANCE)
+
+stop-instance:
+	aws ec2 stop-instances --instance-ids=$(INSTANCE)
+
+query-instance:
+	printf "$(INSTANCE) state:"
+	aws ec2 describe-instances --instance-ids=$(INSTANCE) --query=Reservations[].Instances[].State.Name --output=text
 
