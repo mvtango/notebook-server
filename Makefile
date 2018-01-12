@@ -43,17 +43,21 @@ fargate-logs:
 	xdg-open 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logStream:group=/ecs/jupyter-task-definitien'
 
 
+DEPLOYKEYFILE=$(REMOTEDIR)/.deploykey
+
 deploy-key :
 	{ \
 	mkdir -p .deploy ;\
-	export me=$$(basename $$(pwd)) ;\
-	ssh-keygen  -t rsa -b 4096 -P "" -C "$$me deploy key" -f .deploy/$${me}_deploy ;\
+	ssh-keygen  -t rsa -b 4096 -P "" -C "$(PROJECT) deploy key" -f .deploy/$(PROJECT)_deploy ;\
 	}
+
 
 push-deploy-key-to-remote :
 	{ \
-	export me=$$(basename $$(pwd)) ;\
-	export keyfile=$(REMOTEDIR)/.deploykey ;\
-	cat .deploy/$${me}_deploy | $(SSH) $(PARAM) " cat - >$$keyfile; chmod og-rw $$keyfile "  ;\
+	cat .deploy/$(PROJECT)_deploy | $(SSH) $(PARAM) " cat - >$(DEPLOYKEYFILE); chmod og-rw $(DEPLOYKEYFILE) "  ;\
+	echo Add to ~/.ssh/config: ;\
+	printf "Host $(PROJECT)-github\n\tHostname github.com\n\tUser git\n\tIdentity $(DEPLOYKEYFILE)\n\n" ;\
+	echo Then clone with: ;\
+	printf "git clone $(shell git remote -v | awk -n '/fetch/ { print gensub(/^[^:]+/,"git@$(PROJECT)-github",$$2); }')\n" ;\
 	}
 
