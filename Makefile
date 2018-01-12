@@ -10,11 +10,13 @@ REMOTEDIR := /home/ec2-user/projekte/$(PROJECT)
 build:
 	docker build . -t $(PROJECT)
 
+PORT=8888
+MODE=-it
 run:
 	export work=$$(pwd)/work ;\
-	echo mkdir -p $$work ;\
+	mkdir -p $$work ;\
 	sudo chown -R $$(id -u) $$work ; \
-	docker run -it --rm -p 8888:8888 \
+	docker run $(MODE) --rm -p $(PORT):8888 \
 		-e GEN_CERT=yes \
 		-e GRANT_SUDO=yes \
 		-e NB_UID=$$(id -u)\
