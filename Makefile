@@ -25,6 +25,10 @@ run:
 		$(PROJECT) $(PARAM)
 
 
+get-token:
+	docker logs $(PROJECT) | grep token=
+
+
 remote: 
 	expect -c 'spawn $(SSH); send "mkdir -p $(REMOTEDIR); cd $(REMOTEDIR); tmux new-session -s $(PROJECT) || tmux attach -t $(PROJECT)\r"; sleep 0.5; send  "eval \$$(tmux show-env -g |grep '^SSH_A')\r"; interact '
 
