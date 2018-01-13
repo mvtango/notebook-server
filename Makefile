@@ -1,13 +1,7 @@
 
 SHELL := /bin/bash
 
-
-PROJECT := mynotebook
-LOGIN   := ubuntu@18.194.22.206
-# ubuntu@18.196.84.52 
-# ec2-user@ec2-35-157-157-97.eu-central-1.compute.amazonaws.com
-SSH     := ssh -A -i ~/.ssh/id_martinvirtel_server_2016.pub $(LOGIN)
-REMOTEDIR := /home/ubuntu/projekte/$(PROJECT)
+include config.makefile
 
 build:
 	docker build . -t $(PROJECT)
@@ -65,15 +59,14 @@ push-deploy-key-to-remote :
 
 
 
-INSTANCE := i-045fdc3f16c85b557
 
 start-instance:
-	aws ec2 start-instances --instance-ids=$(INSTANCE)
+	$(AWS_CREDENTIALS) aws ec2 start-instances --instance-ids=$(INSTANCE)
 
 stop-instance:
-	aws ec2 stop-instances --instance-ids=$(INSTANCE)
+	$(AWS_CREDENTIALS) aws ec2 stop-instances --instance-ids=$(INSTANCE)
 
 query-instance:
-	printf "$(INSTANCE) state:"
-	aws ec2 describe-instances --instance-ids=$(INSTANCE) --query=Reservations[].Instances[].State.Name --output=text
+	@printf "$(INSTANCE) state: " ;\
+	$(AWS_CREDENTIALS) aws ec2 describe-instances --instance-ids=$(INSTANCE) --query=Reservations[].Instances[].State.Name --output=text
 
