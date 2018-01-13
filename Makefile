@@ -6,11 +6,15 @@ include config.makefile
 build:
 	docker build . -t $(PROJECT)
 
+port ?= 8888
+mode ?= -it
 run:
+	{ \
+	echo PARAMETERS: port=$(port) mode=$(mode) param=$(param) ;\
 	export work=$$(pwd)/work ;\
-	echo mkdir -p $$work ;\
+	mkdir -p $$work ;\
 	sudo chown -R $$(id -u) $$work ; \
-	docker run -it --rm -p 8888:8888 \
+	docker run $(mode) --rm -p $(port):8888 \
 		-e GEN_CERT=yes \
 		-e GRANT_SUDO=yes \
 		-e NB_UID=$$(id -u)\
@@ -18,11 +22,15 @@ run:
 		-u root \
 		--name $(PROJECT) \
 		-v $$work:/home/jovyan/work \
-		$(PROJECT) $(PARAM)
+		$(PROJECT) $(param) ; \
+	}
 
-
-get-token:
-	docker logs $(PROJECT) | grep token=
+exec ?= jupyter notebook list
+exec:
+	{ \
+	echo PARAMETERS: exec=$(exec) ;\
+	docker exec -it $(PROJECT) $(exec) ;\
+	}
 
 
 remote: 
