@@ -8,14 +8,20 @@ build:
 
 port ?= 8888
 mode ?= -it
+cert ?= no
 run:
 	{ \
-	echo PARAMETERS: port=$(port) mode=$(mode) param=$(param) ;\
+	echo PARAMETERS: port=$(port) mode=$(mode) param=$(param) cert=$(cert);\
 	export work=$$(pwd)/work ;\
+	if [ "$(cert)" == "yes" ] ; then \
+	   export certe="-e GEN_CERT=yes" ; \
+	else \
+	   export certe="" ;\
+	fi ;\
 	mkdir -p $$work ;\
 	sudo chown -R $$(id -u) $$work ; \
 	docker run $(mode) --rm -p $(port):8888 \
-		-e GEN_CERT=yes \
+                $$certe \
 		-e GRANT_SUDO=yes \
 		-e NB_UID=$$(id -u)\
 		-e NB_GID=$$(id -g)\
@@ -25,6 +31,14 @@ run:
 		$(PROJECT) $(param) ; \
 	}
 
+
+stop:
+	docker stop $(PROJECT)
+
+status: 
+	docker ps --filter name=$(PROJECT)
+
+
 exec ?= jupyter notebook list
 exec:
 	{ \
@@ -33,18 +47,18 @@ exec:
 	}
 
 
+encode-password: 
+	{ \
+	echo cleartext=$(cleartext) ;\
+	docker exec -it $(PROJECT) python -c 'from IPython.lib import passwd; print(passwd("$(cleartext)"))' ;\
+	}
+
 remote: 
 	expect -c 'spawn $(SSH); send "mkdir -p $(REMOTEDIR); cd $(REMOTEDIR); tmux new-session -s $(PROJECT) || tmux attach -t $(PROJECT)\r"; sleep 0.5; send  "eval \$$(tmux show-env -g |grep '^SSH_A')\r"; interact '
 
 remote-exec:
 	$(SSH) $(PARAM)
 
-
-#		-v $$(pwd)/site-packages:/opt/conda/lib/python3.6/site-packages 
-#
-#
-fargate-logs:
-	xdg-open 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logStream:group=/ecs/jupyter-task-definitien'
 
 
 DEPLOYKEYFILE=$(REMOTEDIR)/.deploykey
